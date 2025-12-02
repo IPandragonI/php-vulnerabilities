@@ -6,8 +6,8 @@ services:
       - ./infra/volumes/dev/database:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: root
-    ports:
-      - "3306:3306"
+    networks:
+        - app-network
 
   vulnerable-symfony-php:
     build:
@@ -21,6 +21,8 @@ services:
     depends_on:
       - mariadb
     tty: true
+    networks:
+      - app-network
     command: /bin/sh -c "chown -R www-data:www-data /var/www/app && php-fpm"  # Changer les permissions puis démarrer PHP-FPM
 
 
@@ -35,8 +37,16 @@ services:
     depends_on:
       - vulnerable-symfony-php
     tty: true
+    networks:
+      - app-network
 
   mailcatcher:
     restart: on-failure
     image: schickling/mailcatcher
     ports: [ 1025, 1080:1080 ]
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
