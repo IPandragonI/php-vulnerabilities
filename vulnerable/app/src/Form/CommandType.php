@@ -6,7 +6,6 @@ use App\Constants\Enums\CommandEnums;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -15,12 +14,12 @@ class CommandType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('commande', TextType::class, [
+            ->add('commande', ChoiceType::class, [
                 'label' => 'Commande',
                 'required' => true,
+                'choices' => CommandEnums::toFormChoices(),
                 'attr' => [
                     'class' => 'border border-gray-300 rounded p-2 w-full',
-                    'placeholder' => 'Entrez une commande ici...', 
                 ],
             ])
             ->add('submit', SubmitType::class, [

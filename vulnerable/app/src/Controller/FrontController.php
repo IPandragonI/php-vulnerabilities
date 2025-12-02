@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Constants\Enums\CommandEnums;
 use App\Form\CommandType;
 use App\Repository\AtelierRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -10,6 +11,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\DBAL\Connection;
+use Symfony\Component\Process\Process;
+use Symfony\Component\Process\Exception\ProcessFailedException;
+
 
 class FrontController extends AbstractController
 {
@@ -62,18 +66,34 @@ class FrontController extends AbstractController
         
         if ($form->isSubmitted() && $form->isValid()) {
             // PATCH COMMAND INJECTION VULNERABILITY
-            $allowCommands = [
-                'php bin/console app:total'
-            ];
-            if (!in_array(trim($form->getData()['commande']), $allowCommands)) {
-                throw new \InvalidArgumentException('Commande non autorisée.');
+            $submitted = $form->getData()['commande'] ?? null;
+            $enum = null;
+            if (is_string($submitted)) {
+                $enum = CommandEnums::fromSubmitted($submitted);
             }
-            $commande = $form->getData()['commande'];
-            $output = shell_exec($commande);
-        }
-        return $this->render('adminUser/atelier/command.html.twig', [
-            'form' => $form,
-            'output' => $output ?? null,
-        ]);
-    }
-}
+
+            if (!$enum instanceof CommandEnums) {
+                $this->addFlash('error', 'Commande invalide.');
+                return $this->render('adminUser/atelier/command.html.twig', [
+                    'form' => $form,
+                    'output' => null,
+                ]);
+            }
+
+            $command = $enum->getShellCommand();
+
+            $process = Process::fromShellCommandline($command);
+            $process->run();
+
+            if (!$process->isSuccessful()) {
+                $output = 'Erreur lors de l\'execution: ' . $process->getErrorOutput();
+            } else {
+                $output = $process->getOutput();
+            }
+         }
+         return $this->render('adminUser/atelier/command.html.twig', [
+             'form' => $form,
+             'output' => $output ?? null,
+         ]);
+     }
+ }

@@ -19,4 +19,14 @@ enum CommandEnums: string
             self::ARTICLE_TOTAL => 'php bin/console app:total',
         };
     }
+
+    public static function fromSubmitted(string $submittedValue): self
+    {
+        foreach (self::cases() as $case) {
+            if ($case->value === $submittedValue) {
+                return $case;
+            }
+        }
+        throw new \InvalidArgumentException("Invalid submitted value: " . $submittedValue);
+    }
 }
