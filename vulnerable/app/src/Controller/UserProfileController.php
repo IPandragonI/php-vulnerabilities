@@ -24,6 +24,13 @@ class UserProfileController extends AbstractController
         EntityManagerInterface $em
     ): Response
     {
+        // PATCH BROKEN ACCESS CONTROL VULNERABILITY
+        $user = $this->getUser();
+        $isAdmin = in_array("ROLE_ADMIN", $user->getRoles());
+
+        if (!$isAdmin && $user->getId() != $id) {
+            throw $this->createAccessDeniedException("Vous n'avez pas la permission d'accéder à ce profil.");
+        }
         $inscription = $inscriptionRepository->find($id);
 
         if (!$inscription) {
