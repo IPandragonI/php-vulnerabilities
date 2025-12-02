@@ -31,7 +31,8 @@ class FrontController extends AbstractController
 
     // Si un terme de recherche est fourni, effectuez la recherche
     if ($query) {
-        $results = $atelierRepository->query($query);
+        // PATCH SQL INJECTION VULNERABILITY
+        $results = $atelierRepository->query(htmlspecialchars($query));
     } else {
         // Sinon, récupérez tous les ateliers
         $results = $atelierRepository->findAll();
