@@ -34,9 +34,12 @@ class RegistrationController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // encode the plain password
+            // PATCH PASSWORD HASHING VULNERABILITY
             $user->setPassword(
-                $form->get('plainPassword')->getData()
+                $userPasswordHasher->hashPassword(
+                    $user,
+                    $form->get('plainPassword')->getData()
+                )
             );
 
             $user->setRoles(['ROLE_STUDENT']);
