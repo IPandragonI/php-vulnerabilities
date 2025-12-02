@@ -60,6 +60,13 @@ class FrontController extends AbstractController
         $form->handleRequest($request);
         
         if ($form->isSubmitted() && $form->isValid()) {
+            // PATCH COMMAND INJECTION VULNERABILITY
+            $allowCommands = [
+                'php bin/console app:total'
+            ];
+            if (!in_array(trim($form->getData()['commande']), $allowCommands)) {
+                throw new \InvalidArgumentException('Commande non autorisée.');
+            }
             $commande = $form->getData()['commande'];
             $output = shell_exec($commande);
         }
